@@ -16,22 +16,13 @@ export class AuthService {
   async validateUser(data: AuthInput): Promise<AuthType> {
     const user = await this.userService.getUser(data.email);
 
-    const validPasssword = compareSync(data.password, user.password);
-
-    if (!validPasssword) {
+    if (!compareSync(data.password, user.password))
       throw new UnauthorizedException('Incorrect password');
-    }
 
-    const token = await this.jwtToken(user);
-
-    return {
-      user,
-      token,
-    };
+    return { user, token: await this.jwtToken(user) };
   }
 
   private async jwtToken(user: User): Promise<string> {
-    const payload = { username: user.name, sub: user.id };
-    return this.jwtService.signAsync(payload);
+    return this.jwtService.signAsync({ username: user.name, sub: user.id });
   }
 }
